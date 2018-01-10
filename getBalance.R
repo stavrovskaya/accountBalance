@@ -41,10 +41,10 @@ getBalance<-function(clients, updateProgress = NULL){
   if (is.function(updateProgress)) {
     updateProgress(4/n, "load campaign report")
   }
-  cost_report<-yadirGetReport(ReportType = "CAMPAIGN_PERFORMANCE_REPORT", DateRangeType = "LAST_WEEK", FieldNames = c("CampaignName","Impressions","Clicks","Cost"), Login = clients, Token = my_token)
-  mean_cost<-dplyr::summarise(group_by(cost_report, login), mean_day_cost=round(sum(Cost)/7, 2))
-  mean_cost<-data.frame(mean_cost)
-
+  cost_report<-yadirGetReport(ReportType = "ACCOUNT_PERFORMANCE_REPORT", DateRangeType = "LAST_WEEK", FieldNames = c("Impressions","Clicks","Cost"), Login = clients, Token = my_token)
+  mean_cost<-dplyr::mutate(cost_report, mean_day_cost=round(Cost/7, 2))#dplyr::summarise(group_by(cost_report, login), mean_day_cost=round(sum(Cost)/7, 2))
+  mean_cost<-mean_cost[,c(-1,-2,-3)]
+  
   if (is.function(updateProgress)) {
     updateProgress(5/n, "form final report")
   }  

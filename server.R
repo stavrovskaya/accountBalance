@@ -8,6 +8,7 @@
 #
 
 library(shiny)
+library("stringr")
 
 
 # Define server logic required to draw a histogram
@@ -62,11 +63,12 @@ shinyServer(function(input, output, session) {
   }, error = function(err) {
     output$warning<-renderText({paste(err)})
   })   
-  session$onSessionEnded(stopApp)
+  
   })
   observeEvent(input$clients, {
     output$warning <- renderText({ 
       ""
     })
   })
+  session$onSessionEnded(stopApp)
 })
