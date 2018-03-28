@@ -41,9 +41,21 @@ getBalance<-function(clients, updateProgress = NULL){
   if (is.function(updateProgress)) {
     updateProgress(4/n, "load campaign report")
   }
-  cost_report<-yadirGetReport(ReportType = "ACCOUNT_PERFORMANCE_REPORT", DateRangeType = "LAST_WEEK", FieldNames = c("Impressions","Clicks","Cost"), Login = clients, Token = my_token)
-  mean_cost<-dplyr::mutate(cost_report, mean_day_cost=round(Cost/7, 2))#dplyr::summarise(group_by(cost_report, login), mean_day_cost=round(sum(Cost)/7, 2))
-  mean_cost<-mean_cost[,c(-1,-2,-3)]
+  cost_report<-yadirGetReport(ReportType = "ACCOUNT_PERFORMANCE_REPORT", 
+                              DateRangeType = "CUSTOM_DATE", 
+                              DateFrom = Sys.Date()-7, 
+                              DateTo = Sys.Date()-1,  
+                              FieldNames = c("Impressions","Clicks","Cost", "Date"), 
+                              Login = clients, Token = my_token)
+  
+  cost_report$Impressions<-as.integer(cost_report$Impressions)
+  sum_cost_report<-dplyr::summarize(group_by(cost_report, c(login)), sum(Impressions), sum(Clicks), sum(Cost), sum(Cost>0))
+  colnames(sum_cost_report)<-c("login", "Impressions", "Clicks", "Cost", "non_zero_days")
+  
+  mean_cost<-mutate(sum_cost_report, mean_day_cost=round(Cost/non_zero_days,2))
+  
+  mean_cost<-dplyr::mutate(sum_cost_report, mean_day_cost=round(Cost/7, 2))#dplyr::summarise(group_by(cost_report, login), mean_day_cost=round(sum(Cost)/7, 2))
+  mean_cost<-data.frame(dplyr::select(mean_cost, login,mean_day_cost))
   
   if (is.function(updateProgress)) {
     updateProgress(5/n, "form final report")
